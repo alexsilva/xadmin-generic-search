@@ -12,6 +12,7 @@ from functools import reduce
 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import FieldDoesNotExist
 from django.db.models import Q
 from django.utils.functional import cached_property
 from xadmin.util import lookup_needs_distinct
@@ -166,17 +167,24 @@ or define a 'related_search_mapping' argument which limits the ctypes.""")
         """
         ids = defaultdict(list)
         for rel_field, fields in fields_mapping.items():
-            query = self._generate_q_object(search_term, fields)
-            if not query:
-                warnings.warn('No Q instance returned')
-                continue
-
             obj_id = (self.related_search_mapping[rel_field].get('object_id') or
                       self._get_object_id(self.model, rel_field))
             ctypes = (self.related_search_mapping[rel_field].get('ctypes') or
                       self._get_content_types(self.model, rel_field))
             models = self._get_ctype_models(ctypes)
             for model in models:
+                lookup_fields = []
+                for lookup_field in fields:
+                    # Checks if the model has the field before the filter.
+                    field_name = lookup_field.split("__", 1)[0]
+                    try:
+                        _get_opts(model).get_field(field_name)
+                        lookup_fields.append(lookup_field)
+                    except FieldDoesNotExist:
+                        continue
+                query = self._generate_q_object(search_term, lookup_fields)
+                if not query:
+                    continue
                 ids[obj_id].extend(
                     model.objects.filter(query).values_list('pk', flat=True)
                 )
