@@ -7,6 +7,9 @@ from xplugin_generic_search.search import GenericSearchMixin
 
 
 class GenericSearchPlugin(BaseAdminPlugin):
+    """
+    Search plugin similar to the standard but adds the ability to search generic content.
+    """
     # Same as 'search_fields' but replace it with this one.
     related_search_fields = ()
     # Field map related to the columns of the generic field.
