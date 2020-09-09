@@ -221,8 +221,9 @@ or define a 'related_search_mapping' argument which limits the ctypes.""")
                 or_queries.append(Q(
                     **{f'{obj_id}__in': ids_list}
                 ))
-            query = reduce(operator.or_, or_queries)
-            queryset = queryset.filter(query)
+            if or_queries:
+                query = reduce(operator.or_, or_queries)
+                queryset = queryset.filter(query)
         if not use_distinct:
             for search_spec in orm_lookups:
                 if lookup_needs_distinct(self.opts, search_spec):
