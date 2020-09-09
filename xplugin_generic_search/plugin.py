@@ -7,7 +7,9 @@ from xplugin_generic_search.search import GenericSearchMixin
 
 
 class GenericSearchPlugin(BaseAdminPlugin):
+    # Same as 'search_fields' but replace it with this one.
     related_search_fields = ()
+    # Field map related to the columns of the generic field.
     related_search_mapping = {}
 
     def init_request(self, *args, **kwargs):
