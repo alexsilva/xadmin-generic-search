@@ -19,6 +19,7 @@ class GenericSearchPlugin(BaseAdminPlugin):
         return isinstance(self.admin_view, ListAdminView)
 
     def do_search(self, search_query, queryset):
+        """Apply the search filter on standard fields and also on generic fields"""
         search_mixin = GenericSearchMixin(self.model,
                                           self.related_search_fields,
                                           self.related_search_mapping)
@@ -28,6 +29,7 @@ class GenericSearchPlugin(BaseAdminPlugin):
         return queryset
 
     def get_list_queryset(self, queryset):
+        """get_list_queryset::filter_hook"""
         search_query = self.request.GET.get(SEARCH_VAR, '')
         if search_query and self.related_search_fields:
             queryset = self.do_search(search_query, queryset)
@@ -35,6 +37,7 @@ class GenericSearchPlugin(BaseAdminPlugin):
         return queryset
 
     def block_nav_form(self, context, nodes):
+        """block_nav_form::filter_hook"""
         if self.related_search_fields:
             context = get_context_dict(context or {})  # no error!
             self.admin_view.search_fields = self.related_search_fields
