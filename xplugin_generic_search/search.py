@@ -159,19 +159,17 @@ or define a 'related_search_mapping' argument which limits the ctypes.""")
         raise Exception("Invalid argument passed, must be one of: "
                         "<dict>, <Q>, <iterable of 2 elem. tuples>")
 
-    def get_related_ids(self, search_term, fields_mapping):
+    def get_related_items(self, search_term, fields_mapping):
         """
         Takes a dict of {generic_field_name: list_of_inner_Fields}, performs
         the query on the related object models (using defined or calculated
         content types) and returns the ids of the result objects.
         """
-        ids = defaultdict(list)
+        related_items = []
         for rel_field, fields in fields_mapping.items():
-            obj_id = (self.related_search_mapping[rel_field].get('object_id') or
-                      self._get_object_id(self.model, rel_field))
-            ctypes = (self.related_search_mapping[rel_field].get('ctypes') or
-                      self._get_content_types(self.model, rel_field))
-            models = self._get_ctype_models(ctypes)
+            object_id_field = self._get_object_id(self.model, rel_field)
+            content_type_field = self._get_content_types(self.model, rel_field)
+            models = self._get_ctype_models(self.related_search_mapping[rel_field])
             for model in models:
                 lookup_fields = []
                 for lookup_field in fields:
@@ -185,10 +183,17 @@ or define a 'related_search_mapping' argument which limits the ctypes.""")
                 query = self._generate_q_object(search_term, lookup_fields)
                 if not query:
                     continue
-                ids[obj_id].extend(
-                    model.objects.filter(query).values_list('pk', flat=True)
-                )
-        return ids
+                related_items.append({
+                    'object_ids': {
+                        'field': object_id_field,
+                        'values': list(model.objects.filter(query).values_list('pk', flat=True)),
+                    },
+                    'content_type': {
+                        'field': content_type_field,
+                        'value': ContentType.objects.get_for_model(model).pk
+                    }
+                })
+        return related_items
 
     def parse_related_fields(self):
         """
@@ -215,7 +220,7 @@ or define a 'related_search_mapping' argument which limits the ctypes.""")
             return queryset, use_distinct
 
         non_generic_fields, generic_fields = self.parse_related_fields()
-        related_ids = self.get_related_ids(search_term, generic_fields)
+        related_items = self.get_related_items(search_term, generic_fields)
 
         # initial orm lookups (for normal fields)
         orm_lookups = [self._construct_search(str(search_field))
@@ -223,12 +228,15 @@ or define a 'related_search_mapping' argument which limits the ctypes.""")
         for bit in search_term.split():
             or_queries = [Q(**{orm_lookup: bit})
                           for orm_lookup in orm_lookups]
-
             # append generic related filters to or_queries
-            for obj_id, ids_list in related_ids.items():
-                or_queries.append(Q(
-                    **{f'{obj_id}__in': ids_list}
-                ))
+            for item in related_items:
+                object_ids = item['object_ids']
+                ctype = item['content_type']
+                for pk in object_ids['values']:
+                    or_queries.append(
+                        Q(**{object_ids['field']: pk}) &
+                        Q(**{ctype['field']: ctype['value']})
+                    )
             if or_queries:
                 query = reduce(operator.or_, or_queries)
                 queryset = queryset.filter(query)
