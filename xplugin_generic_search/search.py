@@ -13,9 +13,15 @@ from functools import reduce
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
+from django.utils.functional import cached_property
 from xadmin.util import lookup_needs_distinct
 
 logger = logging.getLogger('xplugin_generic_search.search')
+
+
+def _get_opts(model):
+    """Return meta options from model"""
+    return model._meta
 
 
 def get_generic_field(model, field_name):
@@ -23,7 +29,7 @@ def get_generic_field(model, field_name):
     Find the given generic_field name in the given model and verify
     it is a GenericForeignKey, otherwise raise an Exeption.
     """
-    for field in model._meta.virtual_fields:
+    for field in _get_opts(model).virtual_fields:
         if field.name == field_name:
             if not isinstance(field, GenericForeignKey):
                 raise Exception(
@@ -52,11 +58,16 @@ class GenericSearchMixin(object):
     * Currently assumes id of related objects are unique across all models
     """
 
-    def __init__(self, search_fields, related_search_mapping=None):
+    def __init__(self, model, search_fields, related_search_mapping=None):
         if related_search_mapping is None:
             related_search_mapping = {}
+        self.model = model
         self.search_fields = search_fields
         self.related_search_mapping = related_search_mapping
+
+    @cached_property
+    def opts(self):
+        return _get_opts(self.model)
 
     @staticmethod
     def _generate_q_object(search_term, orm_lookups):
@@ -190,7 +201,7 @@ or define a 'related_search_mapping' argument which limits the ctypes.""")
                     normal_fields.append(field)
         return normal_fields, generic_search_fields
 
-    def get_search_results(self, search_term, queryset):
+    def get_results(self, search_term, queryset):
         use_distinct = False
         if not search_term:
             return queryset, use_distinct
