@@ -9,5 +9,10 @@ setup(
     author='alex',
     author_email='alex@fabricadigital.com.br',
     include_package_data=True,
-    description='Plugin that adds the ability to search for generic content (with content-type).'
+    description='Plugin that adds the ability to search for generic content (with content-type).',
+    classifiers=[
+        'Framework :: Django',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3.7'
+    ]
 )
