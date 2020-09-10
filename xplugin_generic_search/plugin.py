@@ -1,8 +1,9 @@
+from django import template
 from xadmin.filters import SEARCH_VAR
 from xadmin.plugins.utils import get_context_dict
 from xadmin.views import BaseAdminPlugin
 from xadmin.views import ListAdminView
-from django import template
+
 from xplugin_generic_search.search import GenericSearchMixin
 
 
@@ -16,7 +17,8 @@ class GenericSearchPlugin(BaseAdminPlugin):
     related_search_mapping = {}
 
     def init_request(self, *args, **kwargs):
-        return isinstance(self.admin_view, ListAdminView)
+        return bool(not getattr(self.admin_view, 'search_fields', None) and
+                    isinstance(self.admin_view, ListAdminView))
 
     def do_search(self, search_query, queryset):
         """Apply the search filter on standard fields and also on generic fields"""
