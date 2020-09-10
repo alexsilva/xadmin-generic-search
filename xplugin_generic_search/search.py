@@ -169,7 +169,10 @@ or define a 'related_search_mapping' argument which limits the ctypes.""")
                 if is_ctype_string(ctype):
                     models.append(get_ctype_model(ctype))
                 else:
-                    models.append(ContentType.objects.get(*ctype).model_class())
+                    app_label, model = ctype
+                    models.append(
+                        ContentType.objects.get(app_label=app_label, model=model).model_class()
+                    )
             return models
         raise Exception("Invalid argument passed, must be one of: "
                         "<dict>, <Q>, <iterable of 2 elem. tuples>")
