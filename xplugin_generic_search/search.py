@@ -221,15 +221,18 @@ or define a 'related_search_mapping' argument which limits the ctypes.""")
         normal_fields = []
         generic_search_fields = defaultdict(list)
         for field in self.search_fields:
-            for rfield in self.related_search_mapping:
-                if field.startswith(rfield):
-                    inner_field = field[len(rfield) + 2:]
-                    generic_search_fields[rfield].append(
-                        # get the field name after 'rfield__'
-                        self._construct_search(inner_field)
-                    )
-                else:
-                    normal_fields.append(field)
+            if self.related_search_mapping:
+                for rfield in self.related_search_mapping:
+                    if field.startswith(rfield):
+                        inner_field = field[len(rfield) + 2:]
+                        generic_search_fields[rfield].append(
+                            # get the field name after 'rfield__'
+                            self._construct_search(inner_field)
+                        )
+                    else:
+                        normal_fields.append(field)
+            else:
+                normal_fields.append(field)
         return normal_fields, generic_search_fields
 
     def get_results(self, search_term, queryset):
