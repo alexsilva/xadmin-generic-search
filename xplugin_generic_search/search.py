@@ -204,7 +204,7 @@ or define a 'related_search_mapping' argument which limits the ctypes.""")
                 related_items.append({
                     'object_ids': {
                         'field': object_id_field,
-                        'values': list(model.objects.filter(query).values_list('pk', flat=True)),
+                        'values': model.objects.filter(query).values_list('pk', flat=True)
                     },
                     'content_type': {
                         'field': content_type_field,
