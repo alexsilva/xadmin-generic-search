@@ -260,7 +260,11 @@ or define a 'related_search_mapping' argument which limits the ctypes.""")
                     )
             if or_queries:
                 query = reduce(operator.or_, or_queries)
-                queryset = queryset.filter(query)
+                # noinspection PyBroadException
+                try:
+                    queryset = queryset.filter(query)
+                except Exception:
+                    logger.exception("generic search filter")
         if not use_distinct:
             for search_spec in orm_lookups:
                 if lookup_needs_distinct(self.opts, search_spec):
