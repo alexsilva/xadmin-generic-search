@@ -159,7 +159,7 @@ or define a 'related_search_mapping' argument which limits the ctypes.""")
             return [ct.model_class()
                     for ct in ContentType.objects.filter(**ctypes)]
         elif is_ctype_string(ctypes):
-            return get_ctype_model(ctypes)
+            return [get_ctype_model(ctypes)]
         elif isinstance(ctypes, Q):
             return [ct.model_class()
                     for ct in ContentType.objects.filter(ctypes)]
