@@ -142,6 +142,14 @@ class GenericSearchMixin(object):
         b. a Q object which can be passed to a query filter.
         c. an iterable of 2 element tuples as (app_label, model)
         """
+
+        def get_ctype_model(value):
+            app_label, model = value.split('.', 1)
+            return ContentType.objects.get(app_label=app_label, model=model).model_class()
+
+        def is_ctype_string(value):
+            return isinstance(value, str) and '.' in value
+
         if isinstance(ctypes, dict):
             if not ctypes:
                 warnings.warn("""
@@ -150,12 +158,19 @@ all model classes. Please limit ContentType choices the FK if possible,
 or define a 'related_search_mapping' argument which limits the ctypes.""")
             return [ct.model_class()
                     for ct in ContentType.objects.filter(**ctypes)]
+        elif is_ctype_string(ctypes):
+            return get_ctype_model(ctypes)
         elif isinstance(ctypes, Q):
             return [ct.model_class()
                     for ct in ContentType.objects.filter(ctypes)]
         elif isinstance(ctypes, Iterable):
-            return [ContentType.objects.get(app_label=app, model=model).model_class()
-                    for app, model in ctypes]
+            models = []
+            for ctype in ctypes:
+                if is_ctype_string(ctype):
+                    models.append(get_ctype_model(ctype))
+                else:
+                    models.append(ContentType.objects.get(*ctype).model_class())
+            return models
         raise Exception("Invalid argument passed, must be one of: "
                         "<dict>, <Q>, <iterable of 2 elem. tuples>")
 
