@@ -1,3 +1,4 @@
+# coding=utf-8
 from django import template
 from xadmin.filters import SEARCH_VAR
 from xadmin.plugins.utils import get_context_dict
