@@ -10,6 +10,7 @@ import warnings
 from collections import defaultdict, Iterable
 from functools import reduce
 
+from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import FieldDoesNotExist
@@ -17,7 +18,12 @@ from django.db.models import Q
 from django.utils.functional import cached_property
 from xadmin.util import lookup_needs_distinct
 
-logger = logging.getLogger('xplugin_generic_search.search')
+
+logger = logging.getLogger(
+    getattr(settings,
+            "XPLUGIN_GENERIC_SEARCH_LOGGER_NAME",
+            'xplugin_generic_search.search'
+            ))
 
 
 def _get_opts(model):
