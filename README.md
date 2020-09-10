@@ -24,9 +24,8 @@ class DirectoryAdmin:
         'content_object__first_name'
     )
     related_search_mapping = {
-         'content_object': {
-             'ctypes': [settings.AUTH_USER_MODEL.split('.')]
-         }
+        # can be a list []
+        'content_object': settings.AUTH_USER_MODEL
     }
 
 site.register(Directory, DirectoryAdmin)
