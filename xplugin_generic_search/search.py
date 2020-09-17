@@ -36,13 +36,11 @@ def get_generic_field(model, field_name):
     Find the given generic_field name in the given model and verify
     it is a GenericForeignKey, otherwise raise an Exeption.
     """
-    for field in _get_opts(model).virtual_fields:
-        if field.name == field_name:
-            if not isinstance(field, GenericForeignKey):
-                raise Exception(
-                    'Given field %s is not an instance of '
-                    'GenericForeignKey' % field_name)
-            return field
+    field = _get_opts(model).get_field(field_name)
+    if not isinstance(field, GenericForeignKey):
+        raise Exception('Given field %s is not an instance of '
+                        'GenericForeignKey' % field_name)
+    return field
 
 
 class GenericSearchMixin(object):
