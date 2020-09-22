@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='xadmin-generic-search',
-    version='1.0.0',
+    version='1.1.0',
     packages=['xplugin_generic_search'],
     url='https://github.com/alexsilva/xadmin-generic-search',
     license='MIT',
