@@ -7,7 +7,8 @@ https://raw.githubusercontent.com/modlinltd/ModelAdmin-Utils/master/modeladmin_u
 import logging
 import operator
 import warnings
-from collections import defaultdict, Iterable
+from collections import defaultdict
+from collections.abc import Iterable
 from functools import reduce
 
 from django.conf import settings
